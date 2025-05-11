@@ -1,8 +1,12 @@
-export const formatCurrency = (rawValue) => {
+export const formatCurrency = (rawValue, fromCents = true) => {
   const number = Number(rawValue);
-  const cents = number / 100;
 
-  return cents.toLocaleString("pt-BR", {
+  let baseValue = number;
+  if (fromCents) {
+    baseValue = number / 100;
+  }
+
+  return baseValue.toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL",
     minimumFractionDigits: 2,

@@ -17,6 +17,7 @@ import Logo from "../components/Logo";
 import { PrimaryButton } from "../components/Buttons";
 import { getUserInfo } from "../services/userService";
 import ExpenseCard from "../components/ExpenseCard";
+import { formatCurrency } from "../utils/format";
 
 const styles = StyleSheet.create({
   titleLogoContainer: {
@@ -60,20 +61,13 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
   },
-  scrollShadow: {
-    position: "absolute",
-    bottom: 80,
-    left: 0,
-    right: 0,
-    height: 30,
-    zIndex: 1,
-  },
 });
 
 export default function HomeScreen() {
   const [user, setUser] = useState(null);
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [totalExpenses, setTotalExpenses] = useState(0.0);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -107,7 +101,22 @@ export default function HomeScreen() {
               userInfo.expenses.includes(expense.id) && !expense.isDeleted,
           );
 
-          setList(userExpenses);
+          let total = 0;
+          userExpenses.forEach((e) => (total += e.value));
+
+          userExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+          const groupedExpenses = userExpenses.reduce((acc, expense) => {
+            let date = expense.date.toDate().toLocaleDateString("pt-BR");
+            if (!acc[date]) {
+              acc[date] = [];
+            }
+            acc[date].push(expense);
+            return acc;
+          }, {});
+
+          setTotalExpenses(total);
+          setList(Object.entries(groupedExpenses));
         } catch (error) {
           console.error("Error fetching expenses:", error);
         } finally {
@@ -118,6 +127,15 @@ export default function HomeScreen() {
       fetchExpenses();
     }, [user]),
   );
+
+  const handleDelete = async (id) => {
+    await deleteExpense(id);
+    setList((prevList) =>
+      prevList
+        .map(([date, expenses]) => [date, expenses.filter((e) => e.id !== id)])
+        .filter(([_, expenses]) => expenses.length > 0),
+    );
+  };
 
   if (loading) {
     return (
@@ -139,7 +157,7 @@ export default function HomeScreen() {
         </View>
         <TouchableOpacity
           style={styles.profileButton}
-          onPress={() => navigation.navigate("ProfileScreen")}
+          onPress={() => navigation.navigate("Profile")}
         >
           <Text style={styles.profileButtonText}>Profile</Text>
         </TouchableOpacity>
@@ -149,19 +167,27 @@ export default function HomeScreen() {
         Hello, {user?.email}!
       </Text>
 
-      <Text style={{ fontSize: 20, marginBottom: 10 }}>Your expenses:</Text>
+      <Text style={{ fontSize: 20, marginBottom: 10 }}>
+        Your expenses: Total {formatCurrency(totalExpenses, false)}
+      </Text>
 
       <ScrollView style={styles.scrollContainer}>
-        {list.map((expense) => (
-          <ExpenseCard
-            key={expense.id}
-            expense={expense}
-            onEdit={() => navigation.navigate("EditExpense", { expense })}
-            onDelete={async (id) => {
-              await deleteExpense(id);
-              setList((prevList) => prevList.filter((item) => item.id !== id));
-            }}
-          />
+        {list.map(([date, expenses]) => (
+          <View key={date} style={{ marginBottom: 20 }}>
+            <Text
+              style={{ fontSize: 20, marginBottom: 10, fontWeight: "bold" }}
+            >
+              {date}
+            </Text>
+            {expenses.map((expense) => (
+              <ExpenseCard
+                key={expense.id}
+                expense={expense}
+                onEdit={() => navigation.navigate("EditExpense", { expense })}
+                onDelete={() => handleDelete(expense.id)}
+              />
+            ))}
+          </View>
         ))}
       </ScrollView>
 

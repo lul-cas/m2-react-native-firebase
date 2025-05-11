@@ -3,6 +3,7 @@ import HomeScreen from "../screens/Home";
 import NewUserInfoScreen from "../screens/user/New";
 import NewExpenseScreen from "../screens/expenses/New";
 import EditExpenseScreen from "../screens/expenses/Edit";
+import ProfileScreen from "../screens/user/Profile";
 
 export default function AppNavigator() {
   const Stack = createNativeStackNavigator();
@@ -30,6 +31,12 @@ export default function AppNavigator() {
       <Stack.Screen
         name="EditExpense"
         component={EditExpenseScreen}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen
+        name="Profile"
+        component={ProfileScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

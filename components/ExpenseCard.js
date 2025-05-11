@@ -24,7 +24,7 @@ export default function ExpenseCard({ expense, onEdit, onDelete }) {
         <Text style={styles.description}>{expense.description}</Text>
         <Text style={styles.value}>R$ {expense.value}</Text>
         <Text style={styles.date}>
-          {expense.date.toDate().toLocaleDateString()}
+          {expense.date.toDate().toLocaleDateString("pt-BR")}
         </Text>
       </View>
 
