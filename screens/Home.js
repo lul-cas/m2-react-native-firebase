@@ -104,7 +104,7 @@ export default function HomeScreen() {
           let total = 0;
           userExpenses.forEach((e) => (total += e.value));
 
-          userExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+          userExpenses.sort((a, b) => b.date.toDate() - a.date.toDate());
 
           const groupedExpenses = userExpenses.reduce((acc, expense) => {
             let date = expense.date.toDate().toLocaleDateString("pt-BR");
